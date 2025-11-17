@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    triggers {
+        pollSCM('H/2 * * * *')  // Revisa cambios cada 2 minutos
+    }
+
     options {
         timestamps()
         disableConcurrentBuilds()
@@ -65,22 +69,28 @@ pipeline {
             }
         }
 
-        stage('Cleanup') {
+        stage('Deploy') {
             steps {
-                script {
-                    echo "Limpiando servicios y volúmenes..."
-                    sh '${DOCKER_COMPOSE_CMD} down -v || true'
-                }
+                sh '''
+                    echo "Desplegando aplicación..."
+                    ${DOCKER_COMPOSE_CMD} up -d
+                    
+                    echo "Verificando servicios desplegados:"
+                    ${DOCKER_COMPOSE_CMD} ps
+                    
+                    echo "✅ Aplicación disponible en http://localhost:8000"
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "✅ Pipeline exitoso (migraciones + tests OK)."
+            echo "✅ Pipeline exitoso. Aplicación desplegada correctamente."
         }
         failure {
-            echo "❌ Pipeline falló. Revisa los logs del stage que falló."
+            echo "❌ Pipeline falló. Ejecutando cleanup..."
+            sh '${DOCKER_COMPOSE_CMD} down -v || true'
         }
     }
 }
