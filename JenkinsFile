@@ -60,15 +60,18 @@ pipeline {
                 '''
             }
         }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    echo "Limpiando servicios y volúmenes..."
+                    sh '${DOCKER_COMPOSE_CMD} down -v || true'
+                }
+            }
+        }
     }
 
     post {
-        always {
-            sh '''
-                echo "Limpiando servicios y volúmenes..."
-                ${DOCKER_COMPOSE_CMD} down -v || true
-            '''
-        }
         success {
             echo "✅ Pipeline exitoso (migraciones + tests OK)."
         }
