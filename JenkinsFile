@@ -53,11 +53,11 @@ pipeline {
         stage('Migraciones y Tests Django') {
             steps {
                 sh '''
+                    echo "Esperando a que la base de datos esté lista..."
+                    sleep 10
+                    
                     echo "Ejecutando migraciones y tests dentro del contenedor Django (web)..."
-
-                    # Sobrescribimos el comando del servicio web SOLO para CI:
                     ${DOCKER_COMPOSE_CMD} run --rm web sh -c "
-                        python wait_for_db.py &&
                         python manage.py migrate &&
                         python manage.py test
                     "
