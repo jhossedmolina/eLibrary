@@ -6,8 +6,6 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
-    volumes:
-      - ./biblioteca_virtua:/app
     environment:
       DB_HOST: ${DB_HOST}
       DB_NAME: ${DB_NAME}
