@@ -2,14 +2,15 @@ FROM jenkins/jenkins:2.528.2-lts-jdk21
 
 USER root
 
-# Instalamos Docker CLI, Docker Compose y herramientas útiles
+# Instalamos Docker CLI, Docker Compose, Git y herramientas útiles
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     curl \
     gnupg \
-    lsb-release && \
+    lsb-release \
+    git && \
     # Añadimos repositorio oficial de Docker
     install -m 0755 -d /etc/apt/keyrings && \
     curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \

@@ -18,7 +18,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Clonando repositorio..."
-                checkout scm
+                git branch: 'main',
+                    url: 'https://github.com/jhossedmolina/eLibrary.git'
             }
         }
 
