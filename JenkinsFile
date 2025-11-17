@@ -1,0 +1,79 @@
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        // Usa el que tengas instalado en el host de Jenkins:
+        // Para Docker Compose plugin nuevo:
+        DOCKER_COMPOSE_CMD = 'docker compose'
+        // Si usas el binario viejo: 'docker-compose'
+        // DOCKER_COMPOSE_CMD = 'docker-compose'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo "Clonando repositorio..."
+                checkout scm
+            }
+        }
+
+        stage('Build imagen Django') {
+            steps {
+                sh '''
+                    # Limpiar por si quedó algo de un build anterior
+                    ${DOCKER_COMPOSE_CMD} down -v || true
+
+                    echo "Construyendo la imagen del servicio web..."
+                    ${DOCKER_COMPOSE_CMD} build web
+                '''
+            }
+        }
+
+        stage('Levantar MySQL') {
+            steps {
+                sh '''
+                    echo "Levantando solo el servicio de base de datos..."
+                    ${DOCKER_COMPOSE_CMD} up -d db
+
+                    echo "Estado de los contenedores:"
+                    ${DOCKER_COMPOSE_CMD} ps
+                '''
+            }
+        }
+
+        stage('Migraciones y Tests Django') {
+            steps {
+                sh '''
+                    echo "Ejecutando migraciones y tests dentro del contenedor Django (web)..."
+
+                    # Sobrescribimos el comando del servicio web SOLO para CI:
+                    ${DOCKER_COMPOSE_CMD} run --rm web sh -c "
+                        python wait_for_db.py &&
+                        python manage.py migrate &&
+                        python manage.py test
+                    "
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            sh '''
+                echo "Limpiando servicios y volúmenes..."
+                ${DOCKER_COMPOSE_CMD} down -v || true
+            '''
+        }
+        success {
+            echo "✅ Pipeline exitoso (migraciones + tests OK)."
+        }
+        failure {
+            echo "❌ Pipeline falló. Revisa los logs del stage que falló."
+        }
+    }
+}
