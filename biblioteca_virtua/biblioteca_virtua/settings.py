@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -78,25 +79,30 @@ WSGI_APPLICATION = 'biblioteca_virtua.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-if os.getenv('DB_HOST'):
+# Configuración de base de datos
+# Detectar si estamos ejecutando tests mediante variable de entorno
+IS_TESTING = os.getenv('TESTING', '0') == '1'
+
+if IS_TESTING:
+    print("⚙️ MODO TEST: Usando SQLite en memoria")
+    # Usar SQLite en memoria para tests (más rápido y sin problemas de permisos)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
+else:
+    print("⚙️ MODO PRODUCCIÓN: Usando MySQL")
+    # MySQL para desarrollo/producción
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'NAME': os.getenv('DB_NAME', 'biblioteca'),
             'USER': os.getenv('DB_USER', 'usuario'),
-            'PASSWORD': os.getenv('DB_PASSWORD', 'usuario123'),
-            'HOST': os.getenv('DB_HOST'),
-            'PORT': '3306',
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-            },
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'PASSWORD': os.getenv('DB_PASSWORD', 'password'),
+            'HOST': os.getenv('DB_HOST', 'db'),
+            'PORT': os.getenv('DB_PORT', '3306'),
         }
     }
 
