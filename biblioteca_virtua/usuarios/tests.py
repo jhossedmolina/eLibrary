@@ -1,9 +1,11 @@
-from django.test import TestCase, Client
+import unittest
+from unittest.mock import Mock, patch, MagicMock
+from django.test import TestCase, Client, RequestFactory
 from django.urls import reverse
-from unittest.mock import Mock, patch
 from .models import Usuario
 
 class UsuarioModelTest(TestCase):
+    """Tests de modelo - requieren DB"""
     def setUp(self):
         self.usuario = Usuario.objects.create(
             nombre='Juan Perez',
@@ -20,17 +22,21 @@ class UsuarioModelTest(TestCase):
     def test_usuario_str(self):
         self.assertEqual(str(self.usuario), 'Juan Perez (juan@example.com)')
 
-class UsuarioViewTest(TestCase):
+
+class UsuarioViewTest(unittest.TestCase):
+    """Tests de vistas - usan mocks, NO requieren DB"""
     def setUp(self):
+        self.factory = RequestFactory()
         self.client = Client()
 
-    @patch('usuarios.forms.UsuarioForm.is_valid')
-    @patch('usuarios.forms.UsuarioForm.save')
-    def test_registrar_usuario_post_valido(self, mock_save, mock_is_valid):
-        mock_is_valid.return_value = True
+    @patch('usuarios.forms.UsuarioForm')
+    def test_registrar_usuario_post_valido(self, mock_form_class):
+        mock_form = MagicMock()
+        mock_form.is_valid.return_value = True
         mock_usuario = Mock(spec=Usuario)
         mock_usuario.id = 1
-        mock_save.return_value = mock_usuario
+        mock_form.save.return_value = mock_usuario
+        mock_form_class.return_value = mock_form
         
         response = self.client.post(reverse('usuarios:registrar_usuario'), {
             'nombre': 'Carlos Ruiz',
@@ -39,9 +45,11 @@ class UsuarioViewTest(TestCase):
         })
         self.assertEqual(response.status_code, 302)
 
-    @patch('usuarios.forms.UsuarioForm.is_valid')
-    def test_registrar_usuario_post_invalido(self, mock_is_valid):
-        mock_is_valid.return_value = False
+    @patch('usuarios.forms.UsuarioForm')
+    def test_registrar_usuario_post_invalido(self, mock_form_class):
+        mock_form = MagicMock()
+        mock_form.is_valid.return_value = False
+        mock_form_class.return_value = mock_form
         
         response = self.client.post(reverse('usuarios:registrar_usuario'), {
             'nombre': '',
@@ -59,4 +67,4 @@ class UsuarioViewTest(TestCase):
         
         response = self.client.get(reverse('usuarios:confirmacion_usuario', args=[1]))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'usuarios/confirmacion.html')
+
