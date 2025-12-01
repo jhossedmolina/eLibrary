@@ -46,9 +46,15 @@ class PrestamoViewTest(unittest.TestCase):
     @patch('prestamos.models.Prestamo.objects')
     def test_listar_prestamos(self, mock_prestamo_objects):
         mock_prestamo = Mock(spec=Prestamo)
+        mock_prestamo.id = 1
         mock_usuario = Mock(spec=Usuario)
         mock_usuario.nombre = 'Maria Lopez'
+        mock_libro = Mock(spec=Libro)
+        mock_libro.id = 1
+        mock_libro.titulo = '1984'
         mock_prestamo.usuario = mock_usuario
+        mock_prestamo.libro = mock_libro
+        mock_prestamo.fecha_prestamo = timezone.now()  # Fecha real para el template
         mock_prestamo_objects.all.return_value = [mock_prestamo]
         
         response = self.client.get(reverse('prestamos:listar_prestamos'))
@@ -60,17 +66,23 @@ class PrestamoViewTest(unittest.TestCase):
         mock_prestamo.id = 1
         mock_usuario = Mock(spec=Usuario)
         mock_usuario.nombre = 'Maria Lopez'
+        mock_libro = Mock(spec=Libro)
+        mock_libro.id = 1  # Valor real para el template
+        mock_libro.titulo = '1984'
         mock_prestamo.usuario = mock_usuario
+        mock_prestamo.libro = mock_libro
+        mock_prestamo.fecha_prestamo = timezone.now()  # Fecha real para el template
         mock_prestamo_objects.get.return_value = mock_prestamo
         
         response = self.client.get(reverse('prestamos:detalle_prestamo', args=[1]))
         self.assertEqual(response.status_code, 200)
 
-    @patch('prestamos.forms.PrestamoForm')
+    @patch('prestamos.views.PrestamoForm')
     def test_registrar_prestamo_post_valido(self, mock_form_class):
         mock_form = MagicMock()
         mock_form.is_valid.return_value = True
         mock_prestamo = Mock(spec=Prestamo)
+        mock_prestamo.id = 1  # Valor real para el redirect
         mock_form.save.return_value = mock_prestamo
         mock_form_class.return_value = mock_form
         

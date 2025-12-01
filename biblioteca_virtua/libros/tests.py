@@ -32,8 +32,10 @@ class LibroViewTest(unittest.TestCase):
     @patch('libros.models.Libro.objects')
     def test_listar_libros(self, mock_libro_objects):
         mock_libro = Mock(spec=Libro)
+        mock_libro.id = 1  # Valor real para el template
         mock_libro.titulo = '1984'
         mock_libro.autor = 'George Orwell'
+        mock_libro.año_publicacion = date(1949, 6, 8)  # Fecha real para el template
         mock_libro_objects.all.return_value = [mock_libro]
         
         response = self.client.get(reverse('libros:listar_libros'))
@@ -44,6 +46,8 @@ class LibroViewTest(unittest.TestCase):
         mock_libro = Mock(spec=Libro)
         mock_libro.id = 1
         mock_libro.titulo = '1984'
+        mock_libro.autor = 'George Orwell'
+        mock_libro.año_publicacion = date(1949, 6, 8)  # Fecha real para el template
         mock_libro_objects.get.return_value = mock_libro
         
         response = self.client.get(reverse('libros:detalle_libro', args=[1]))
@@ -83,10 +87,16 @@ class LibroViewTest(unittest.TestCase):
     def test_editar_libro(self, mock_libro_objects, mock_form_class):
         mock_libro = Mock(spec=Libro)
         mock_libro.id = 1
+        mock_libro.titulo = '1984'
+        mock_libro.autor = 'George Orwell'
+        mock_libro.año_publicacion = date(1949, 6, 8)
         mock_libro_objects.get.return_value = mock_libro
         
         mock_form = MagicMock()
         mock_form.is_valid.return_value = True
+        mock_libro_actualizado = Mock(spec=Libro)
+        mock_libro_actualizado.id = 1
+        mock_form.save.return_value = mock_libro_actualizado
         mock_form_class.return_value = mock_form
         
         response = self.client.post(reverse('libros:editar_libro', args=[1]), {

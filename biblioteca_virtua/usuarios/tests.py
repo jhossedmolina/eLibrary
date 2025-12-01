@@ -29,7 +29,7 @@ class UsuarioViewTest(unittest.TestCase):
         self.factory = RequestFactory()
         self.client = Client()
 
-    @patch('usuarios.forms.UsuarioForm')
+    @patch('usuarios.forms.RegistroUsuarioForm')
     def test_registrar_usuario_post_valido(self, mock_form_class):
         mock_form = MagicMock()
         mock_form.is_valid.return_value = True
@@ -45,7 +45,7 @@ class UsuarioViewTest(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 302)
 
-    @patch('usuarios.forms.UsuarioForm')
+    @patch('usuarios.forms.RegistroUsuarioForm')
     def test_registrar_usuario_post_invalido(self, mock_form_class):
         mock_form = MagicMock()
         mock_form.is_valid.return_value = False
@@ -60,9 +60,13 @@ class UsuarioViewTest(unittest.TestCase):
 
     @patch('usuarios.models.Usuario.objects')
     def test_confirmacion_usuario(self, mock_usuario_objects):
+        from django.utils import timezone
         mock_usuario = Mock(spec=Usuario)
         mock_usuario.id = 1
         mock_usuario.nombre = 'Maria Lopez'
+        mock_usuario.correo = 'maria@example.com'
+        mock_usuario.edad = 25
+        mock_usuario.fecha_registro = timezone.now()  # Fecha real para el template
         mock_usuario_objects.get.return_value = mock_usuario
         
         response = self.client.get(reverse('usuarios:confirmacion_usuario', args=[1]))
