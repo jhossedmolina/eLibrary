@@ -69,9 +69,10 @@ pipeline {
         stage('Pruebas Unitarias') {
             steps {
                 sh '''
-                    echo "🧪 Ejecutando pruebas unitarias con mocks (sin MySQL)..."
+                    echo "🧪 Ejecutando pruebas unitarias con mocks (usando SQLite en memoria)..."
                     
-                    ${DOCKER_COMPOSE_CMD} run --rm web python run_unit_tests.py
+                    # Establecer variable de entorno para usar SQLite en pruebas
+                    ${DOCKER_COMPOSE_CMD} run --rm -e TESTING=1 web python run_unit_tests.py
                     
                     echo "✅ Pruebas unitarias completadas."
                 '''
