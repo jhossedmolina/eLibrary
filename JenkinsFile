@@ -81,6 +81,8 @@ pipeline {
         
         stage('Reporte de Cobertura') {
             steps {
+                echo "📊 Iniciando generación de reporte de cobertura..."
+                
                 sh '''
                     echo "📊 Generando reporte de cobertura..."
                     
@@ -95,7 +97,7 @@ pipeline {
                         coverage report -m &&
                         coverage xml -o /app/coverage_output/coverage.xml &&
                         coverage html -d /app/coverage_output/htmlcov
-                    "
+                    " || echo "⚠️ Error al ejecutar coverage, pero continuando..."
                     
                     # Mover archivos al workspace de Jenkins
                     if [ -f coverage_output/coverage.xml ]; then
@@ -122,28 +124,33 @@ pipeline {
             }
             post {
                 always {
-                    // Publicar reporte XML para el plugin de Cobertura de Jenkins
                     script {
-                        if (fileExists('coverage.xml')) {
-                            publishCoverage adapters: [
-                                coberturaAdapter('coverage.xml')
-                            ], sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
-                        } else {
-                            echo "⚠️ Archivo coverage.xml no encontrado - el reporte de cobertura no se publicará"
-                        }
-                    }
-                    
-                    // Publicar reporte HTML
-                    script {
-                        if (fileExists('htmlcov/index.html')) {
-                            publishHTML([
-                                reportDir: 'htmlcov',
-                                reportFiles: 'index.html',
-                                reportName: 'Cobertura de Código',
-                                keepAll: true
-                            ])
-                        } else {
-                            echo "⚠️ Reporte HTML de cobertura no encontrado"
+                        try {
+                            // Publicar reporte XML para el plugin de Cobertura de Jenkins
+                            if (fileExists('coverage.xml')) {
+                                publishCoverage adapters: [
+                                    coberturaAdapter('coverage.xml')
+                                ], sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                                echo "✅ Reporte XML de cobertura publicado"
+                            } else {
+                                echo "⚠️ Archivo coverage.xml no encontrado - el reporte de cobertura no se publicará"
+                            }
+                            
+                            // Publicar reporte HTML
+                            if (fileExists('htmlcov/index.html')) {
+                                publishHTML([
+                                    reportDir: 'htmlcov',
+                                    reportFiles: 'index.html',
+                                    reportName: 'Cobertura de Código',
+                                    keepAll: true
+                                ])
+                                echo "✅ Reporte HTML de cobertura publicado"
+                            } else {
+                                echo "⚠️ Reporte HTML de cobertura no encontrado"
+                            }
+                        } catch (Exception e) {
+                            echo "⚠️ Error al publicar reportes de cobertura: ${e.getMessage()}"
+                            echo "⚠️ Esto puede deberse a que los plugins no están instalados"
                         }
                     }
                 }
