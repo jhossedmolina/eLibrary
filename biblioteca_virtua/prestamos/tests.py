@@ -45,17 +45,28 @@ class PrestamoViewTest(unittest.TestCase):
 
     @patch('prestamos.models.Prestamo.objects')
     def test_listar_prestamos(self, mock_prestamo_objects):
-        # No usar spec para evitar que Mock intercepte atributos definidos
-        mock_prestamo = Mock()
-        mock_prestamo.id = 1
-        mock_usuario = Mock()
-        mock_usuario.nombre = 'Maria Lopez'
-        mock_libro = Mock()
-        mock_libro.id = 1  # Valor real para el template
-        mock_libro.titulo = '1984'
-        mock_prestamo.usuario = mock_usuario
-        mock_prestamo.libro = mock_libro
-        mock_prestamo.fecha_prestamo = timezone.now()  # Fecha real para el template
+        # Crear un objeto simple en lugar de Mock para evitar interceptación
+        fecha_prestamo_real = timezone.now()
+        
+        # Crear objetos simples con los atributos necesarios
+        class SimpleLibro:
+            def __init__(self):
+                self.id = 1
+                self.titulo = '1984'
+        
+        class SimpleUsuario:
+            def __init__(self):
+                self.nombre = 'Maria Lopez'
+        
+        class SimplePrestamo:
+            def __init__(self):
+                self.id = 1
+                self.usuario = SimpleUsuario()
+                self.libro = SimpleLibro()
+                self.fecha_prestamo = fecha_prestamo_real
+                self.fecha_devolucion = None
+        
+        mock_prestamo = SimplePrestamo()
         mock_prestamo_objects.all.return_value = [mock_prestamo]
         
         response = self.client.get(reverse('prestamos:listar_prestamos'))
@@ -63,17 +74,29 @@ class PrestamoViewTest(unittest.TestCase):
 
     @patch('prestamos.models.Prestamo.objects')
     def test_detalle_prestamo(self, mock_prestamo_objects):
-        # No usar spec para evitar que Mock intercepte atributos definidos
-        mock_prestamo = Mock()
-        mock_prestamo.id = 1
-        mock_usuario = Mock()
-        mock_usuario.nombre = 'Maria Lopez'
-        mock_libro = Mock()
-        mock_libro.id = 1  # Valor real para el template
-        mock_libro.titulo = '1984'
-        mock_prestamo.usuario = mock_usuario
-        mock_prestamo.libro = mock_libro
-        mock_prestamo.fecha_prestamo = timezone.now()  # Fecha real para el template
+        # Crear un objeto simple en lugar de Mock para evitar interceptación
+        fecha_prestamo_real = timezone.now()
+        
+        # Crear objetos simples con los atributos necesarios
+        class SimpleLibro:
+            def __init__(self):
+                self.id = 1
+                self.titulo = '1984'
+        
+        class SimpleUsuario:
+            def __init__(self):
+                self.nombre = 'Maria Lopez'
+                self.correo = 'maria@example.com'
+        
+        class SimplePrestamo:
+            def __init__(self):
+                self.id = 1
+                self.usuario = SimpleUsuario()
+                self.libro = SimpleLibro()
+                self.fecha_prestamo = fecha_prestamo_real
+                self.fecha_devolucion = None
+        
+        mock_prestamo = SimplePrestamo()
         mock_prestamo_objects.get.return_value = mock_prestamo
         
         response = self.client.get(reverse('prestamos:detalle_prestamo', args=[1]))
