@@ -45,12 +45,13 @@ class PrestamoViewTest(unittest.TestCase):
 
     @patch('prestamos.models.Prestamo.objects')
     def test_listar_prestamos(self, mock_prestamo_objects):
-        mock_prestamo = Mock(spec=Prestamo)
+        # No usar spec para evitar que Mock intercepte atributos definidos
+        mock_prestamo = Mock()
         mock_prestamo.id = 1
-        mock_usuario = Mock(spec=Usuario)
+        mock_usuario = Mock()
         mock_usuario.nombre = 'Maria Lopez'
-        mock_libro = Mock(spec=Libro)
-        mock_libro.id = 1
+        mock_libro = Mock()
+        mock_libro.id = 1  # Valor real para el template
         mock_libro.titulo = '1984'
         mock_prestamo.usuario = mock_usuario
         mock_prestamo.libro = mock_libro
@@ -62,11 +63,12 @@ class PrestamoViewTest(unittest.TestCase):
 
     @patch('prestamos.models.Prestamo.objects')
     def test_detalle_prestamo(self, mock_prestamo_objects):
-        mock_prestamo = Mock(spec=Prestamo)
+        # No usar spec para evitar que Mock intercepte atributos definidos
+        mock_prestamo = Mock()
         mock_prestamo.id = 1
-        mock_usuario = Mock(spec=Usuario)
+        mock_usuario = Mock()
         mock_usuario.nombre = 'Maria Lopez'
-        mock_libro = Mock(spec=Libro)
+        mock_libro = Mock()
         mock_libro.id = 1  # Valor real para el template
         mock_libro.titulo = '1984'
         mock_prestamo.usuario = mock_usuario
@@ -81,7 +83,7 @@ class PrestamoViewTest(unittest.TestCase):
     def test_registrar_prestamo_post_valido(self, mock_form_class):
         mock_form = MagicMock()
         mock_form.is_valid.return_value = True
-        mock_prestamo = Mock(spec=Prestamo)
+        mock_prestamo = Mock()
         mock_prestamo.id = 1  # Valor real para el redirect
         mock_form.save.return_value = mock_prestamo
         mock_form_class.return_value = mock_form
@@ -94,7 +96,8 @@ class PrestamoViewTest(unittest.TestCase):
 
     @patch('prestamos.models.Prestamo.objects')
     def test_registrar_devolucion(self, mock_prestamo_objects):
-        mock_prestamo = Mock(spec=Prestamo)
+        # No usar spec para evitar que Mock intercepte atributos definidos
+        mock_prestamo = Mock()
         mock_prestamo.id = 1
         mock_prestamo.fecha_devolucion = None
         mock_prestamo_objects.get.return_value = mock_prestamo
@@ -104,7 +107,8 @@ class PrestamoViewTest(unittest.TestCase):
 
     @patch('prestamos.models.Prestamo.objects')
     def test_eliminar_prestamo(self, mock_prestamo_objects):
-        mock_prestamo = Mock(spec=Prestamo)
+        # No usar spec para evitar que Mock intercepte atributos definidos
+        mock_prestamo = Mock()
         mock_prestamo.id = 1
         mock_prestamo_objects.get.return_value = mock_prestamo
         

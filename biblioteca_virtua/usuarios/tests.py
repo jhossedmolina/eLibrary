@@ -29,11 +29,11 @@ class UsuarioViewTest(unittest.TestCase):
         self.factory = RequestFactory()
         self.client = Client()
 
-    @patch('usuarios.forms.RegistroUsuarioForm')
+    @patch('usuarios.views.RegistroUsuarioForm')
     def test_registrar_usuario_post_valido(self, mock_form_class):
         mock_form = MagicMock()
         mock_form.is_valid.return_value = True
-        mock_usuario = Mock(spec=Usuario)
+        mock_usuario = Mock()
         mock_usuario.id = 1
         mock_form.save.return_value = mock_usuario
         mock_form_class.return_value = mock_form
@@ -45,7 +45,7 @@ class UsuarioViewTest(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 302)
 
-    @patch('usuarios.forms.RegistroUsuarioForm')
+    @patch('usuarios.views.RegistroUsuarioForm')
     def test_registrar_usuario_post_invalido(self, mock_form_class):
         mock_form = MagicMock()
         mock_form.is_valid.return_value = False
@@ -61,7 +61,8 @@ class UsuarioViewTest(unittest.TestCase):
     @patch('usuarios.models.Usuario.objects')
     def test_confirmacion_usuario(self, mock_usuario_objects):
         from django.utils import timezone
-        mock_usuario = Mock(spec=Usuario)
+        # No usar spec para evitar que Mock intercepte atributos definidos
+        mock_usuario = Mock()
         mock_usuario.id = 1
         mock_usuario.nombre = 'Maria Lopez'
         mock_usuario.correo = 'maria@example.com'

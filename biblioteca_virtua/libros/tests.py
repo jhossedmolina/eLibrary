@@ -31,7 +31,8 @@ class LibroViewTest(unittest.TestCase):
 
     @patch('libros.models.Libro.objects')
     def test_listar_libros(self, mock_libro_objects):
-        mock_libro = Mock(spec=Libro)
+        # No usar spec para evitar que Mock intercepte atributos definidos
+        mock_libro = Mock()
         mock_libro.id = 1  # Valor real para el template
         mock_libro.titulo = '1984'
         mock_libro.autor = 'George Orwell'
@@ -43,7 +44,8 @@ class LibroViewTest(unittest.TestCase):
 
     @patch('libros.models.Libro.objects')
     def test_detalle_libro(self, mock_libro_objects):
-        mock_libro = Mock(spec=Libro)
+        # No usar spec para evitar que Mock intercepte atributos definidos
+        mock_libro = Mock()
         mock_libro.id = 1
         mock_libro.titulo = '1984'
         mock_libro.autor = 'George Orwell'
@@ -53,11 +55,11 @@ class LibroViewTest(unittest.TestCase):
         response = self.client.get(reverse('libros:detalle_libro', args=[1]))
         self.assertEqual(response.status_code, 200)
 
-    @patch('libros.forms.LibroForm')
+    @patch('libros.views.LibroForm')
     def test_registrar_libro_post_valido(self, mock_form_class):
         mock_form = MagicMock()
         mock_form.is_valid.return_value = True
-        mock_libro = Mock(spec=Libro)
+        mock_libro = Mock()
         mock_libro.id = 1
         mock_form.save.return_value = mock_libro
         mock_form_class.return_value = mock_form
@@ -69,7 +71,7 @@ class LibroViewTest(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 302)
 
-    @patch('libros.forms.LibroForm')
+    @patch('libros.views.LibroForm')
     def test_registrar_libro_post_invalido(self, mock_form_class):
         mock_form = MagicMock()
         mock_form.is_valid.return_value = False
@@ -82,10 +84,11 @@ class LibroViewTest(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 200)
 
-    @patch('libros.forms.LibroForm')
+    @patch('libros.views.LibroForm')
     @patch('libros.models.Libro.objects')
     def test_editar_libro(self, mock_libro_objects, mock_form_class):
-        mock_libro = Mock(spec=Libro)
+        # No usar spec para evitar que Mock intercepte atributos definidos
+        mock_libro = Mock()
         mock_libro.id = 1
         mock_libro.titulo = '1984'
         mock_libro.autor = 'George Orwell'
@@ -94,7 +97,7 @@ class LibroViewTest(unittest.TestCase):
         
         mock_form = MagicMock()
         mock_form.is_valid.return_value = True
-        mock_libro_actualizado = Mock(spec=Libro)
+        mock_libro_actualizado = Mock()
         mock_libro_actualizado.id = 1
         mock_form.save.return_value = mock_libro_actualizado
         mock_form_class.return_value = mock_form
@@ -108,7 +111,8 @@ class LibroViewTest(unittest.TestCase):
 
     @patch('libros.models.Libro.objects')
     def test_eliminar_libro(self, mock_libro_objects):
-        mock_libro = Mock(spec=Libro)
+        # No usar spec para evitar que Mock intercepte atributos definidos
+        mock_libro = Mock()
         mock_libro.id = 1
         mock_libro_objects.get.return_value = mock_libro
         
