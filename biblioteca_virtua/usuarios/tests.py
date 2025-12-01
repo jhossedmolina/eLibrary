@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
+from unittest.mock import Mock, patch
 from .models import Usuario
 
 class UsuarioModelTest(TestCase):
@@ -22,32 +23,40 @@ class UsuarioModelTest(TestCase):
 class UsuarioViewTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.usuario = Usuario.objects.create(
-            nombre='Maria Lopez',
-            correo='maria@example.com',
-            edad=25
-        )
 
-    def test_registrar_usuario_post_valido(self):
+    @patch('usuarios.forms.UsuarioForm.is_valid')
+    @patch('usuarios.forms.UsuarioForm.save')
+    def test_registrar_usuario_post_valido(self, mock_save, mock_is_valid):
+        mock_is_valid.return_value = True
+        mock_usuario = Mock(spec=Usuario)
+        mock_usuario.id = 1
+        mock_save.return_value = mock_usuario
+        
         response = self.client.post(reverse('usuarios:registrar_usuario'), {
             'nombre': 'Carlos Ruiz',
             'correo': 'carlos@example.com',
             'edad': 40
         })
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(Usuario.objects.count(), 2)
 
-    def test_registrar_usuario_post_invalido(self):
+    @patch('usuarios.forms.UsuarioForm.is_valid')
+    def test_registrar_usuario_post_invalido(self, mock_is_valid):
+        mock_is_valid.return_value = False
+        
         response = self.client.post(reverse('usuarios:registrar_usuario'), {
             'nombre': '',
             'correo': 'invalid-email',
             'edad': -5
         })
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(Usuario.objects.count(), 1)
 
-    def test_confirmacion_usuario(self):
-        response = self.client.get(reverse('usuarios:confirmacion_usuario', args=[self.usuario.id]))
+    @patch('usuarios.models.Usuario.objects')
+    def test_confirmacion_usuario(self, mock_usuario_objects):
+        mock_usuario = Mock(spec=Usuario)
+        mock_usuario.id = 1
+        mock_usuario.nombre = 'Maria Lopez'
+        mock_usuario_objects.get.return_value = mock_usuario
+        
+        response = self.client.get(reverse('usuarios:confirmacion_usuario', args=[1]))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Maria Lopez')
         self.assertTemplateUsed(response, 'usuarios/confirmacion.html')

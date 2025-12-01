@@ -69,9 +69,9 @@ pipeline {
         stage('Pruebas Unitarias') {
             steps {
                 sh '''
-                    echo "🧪 Ejecutando pruebas unitarias con SQLite..."
+                    echo "🧪 Ejecutando pruebas unitarias con mocks..."
                     
-                    ${DOCKER_COMPOSE_CMD} run --rm web python run_tests_sqlite.py --verbosity=2 --noinput
+                    ${DOCKER_COMPOSE_CMD} run --rm web python manage.py test --verbosity=2 --noinput
                     
                     echo "✅ Pruebas unitarias completadas."
                 '''
@@ -84,7 +84,7 @@ pipeline {
                     echo "📊 Generando reporte de cobertura..."
                     
                     ${DOCKER_COMPOSE_CMD} run --rm web sh -c "
-                        coverage run --source=libros,usuarios,prestamos,core run_tests_sqlite.py --noinput &&
+                        coverage run --source=libros,usuarios,prestamos,core manage.py test --noinput &&
                         coverage report -m &&
                         coverage html
                     "
