@@ -84,14 +84,69 @@ pipeline {
                 sh '''
                     echo "📊 Generando reporte de cobertura..."
                     
-                    ${DOCKER_COMPOSE_CMD} run --rm web sh -c "
+                    # Ejecutar tests con cobertura y generar reportes
+                    # Usar un volumen temporal para compartir archivos
+                    mkdir -p coverage_output
+                    
+                    ${DOCKER_COMPOSE_CMD} run --rm -e TESTING=1 \
+                        -v $(pwd)/coverage_output:/app/coverage_output \
+                        web sh -c "
                         coverage run --source=libros,usuarios,prestamos,core run_unit_tests.py &&
                         coverage report -m &&
-                        coverage html
+                        coverage xml -o /app/coverage_output/coverage.xml &&
+                        coverage html -d /app/coverage_output/htmlcov
                     "
                     
+                    # Mover archivos al workspace de Jenkins
+                    if [ -f coverage_output/coverage.xml ]; then
+                        mv coverage_output/coverage.xml .
+                        echo "✅ coverage.xml copiado"
+                    else
+                        echo "⚠️ coverage.xml no encontrado"
+                    fi
+                    
+                    if [ -d coverage_output/htmlcov ]; then
+                        mv coverage_output/htmlcov .
+                        echo "✅ htmlcov copiado"
+                    else
+                        echo "⚠️ htmlcov no encontrado"
+                    fi
+                    
+                    # Limpiar directorio temporal
+                    rmdir coverage_output 2>/dev/null || rm -rf coverage_output
+                    
                     echo "✅ Reporte de cobertura generado."
+                    echo "📁 Archivos generados:"
+                    ls -la coverage.xml htmlcov/ 2>/dev/null || echo "Algunos archivos no se encontraron"
                 '''
+            }
+            post {
+                always {
+                    // Publicar reporte XML para el plugin de Cobertura de Jenkins
+                    script {
+                        if (fileExists('coverage.xml')) {
+                            publishCoverage adapters: [
+                                coberturaAdapter('coverage.xml')
+                            ], sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                        } else {
+                            echo "⚠️ Archivo coverage.xml no encontrado - el reporte de cobertura no se publicará"
+                        }
+                    }
+                    
+                    // Publicar reporte HTML
+                    script {
+                        if (fileExists('htmlcov/index.html')) {
+                            publishHTML([
+                                reportDir: 'htmlcov',
+                                reportFiles: 'index.html',
+                                reportName: 'Cobertura de Código',
+                                keepAll: true
+                            ])
+                        } else {
+                            echo "⚠️ Reporte HTML de cobertura no encontrado"
+                        }
+                    }
+                }
             }
         }
 
