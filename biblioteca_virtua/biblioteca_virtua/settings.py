@@ -81,7 +81,13 @@ WSGI_APPLICATION = 'biblioteca_virtua.wsgi.application'
 
 # Configuración de base de datos
 # Detectar si estamos ejecutando tests mediante variable de entorno
-IS_TESTING = os.getenv('TESTING', '0') == '1'
+# o si el script se llama run_unit_tests.py
+IS_TESTING = (
+    os.getenv('TESTING', '0') == '1' or 
+    'run_unit_tests' in sys.argv[0] or
+    'pytest' in sys.argv[0] or
+    'test' in sys.argv
+)
 
 if IS_TESTING:
     print("⚙️ MODO TEST: Usando SQLite en memoria")
@@ -90,6 +96,9 @@ if IS_TESTING:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': ':memory:',
+            'TEST': {
+                'NAME': ':memory:',
+            }
         }
     }
 else:
